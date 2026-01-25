@@ -1,0 +1,14 @@
+[package]
+name = "solo-chess-solver"
+version = "0.1.0"
+authors = ["willwang-io <hello@willwang.io>"]
+edition = "2021"
+
+[dependencies]
+dioxus = { version = "0.7.1", features = [] }
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
