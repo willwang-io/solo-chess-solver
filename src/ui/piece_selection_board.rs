@@ -18,7 +18,12 @@ pub fn PieceSelectionBoard(selected: Signal<Option<usize>>) -> Element {
                             selected.set(if selected() == Some(idx) { None } else { Some(idx) })
                         }
                     }
-                    "{piece}"
+                    img {
+                        class: "piece",
+                        src: piece.get_icon(),
+                        alt: piece.to_string(),
+                        draggable: "false",
+                    }
                 }
             }
         }

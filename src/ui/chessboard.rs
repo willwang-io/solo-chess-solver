@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::{cell::Cell, piece::Piece};
+use crate::cell::Cell;
 
 #[component]
 pub fn Chessboard(board: Signal<Vec<Vec<Cell>>>) -> Element {
@@ -26,9 +26,16 @@ fn Square(board: Signal<Vec<Vec<Cell>>>, r: usize, c: usize) -> Element {
             ondragover: move |e| e.prevent_default(),
             ondrop: move |e| {
                 e.prevent_default();
-                let Some(from) = e.data_transfer().get_data("text/plain") else { return; };
-                let Some((fr, fc)) = from.split_once(',') else { return; };
-                let (Ok(fr), Ok(fc)) = (fr.parse::<usize>(), fc.parse::<usize>()) else { return; };
+                let Some((fr, fc)) = e
+                    .data_transfer()
+                    .get_data("text/plain")
+                    .and_then(|s| {
+                        let (r, c) = s.split_once(',')?;
+                        Some((r.parse::<usize>().ok()?, c.parse::<usize>().ok()?))
+                    }) 
+                else {
+                    return;
+                };
 
                 let mut b = board.write();
                 if fr >= b.len() || fc >= b[0].len() { return; }
@@ -40,13 +47,14 @@ fn Square(board: Signal<Vec<Vec<Cell>>>, r: usize, c: usize) -> Element {
             },
 
             if let Some(piece) = cell.piece {
-                div {
+                img {
+                    src: piece.get_icon(),
+                    alt: piece.to_string(),
                     class: "piece",
                     draggable: "true",
                     ondragstart: move |e| {
                         let _ = e.data_transfer().set_data("text/plain", &format!("{r},{c}"));
                     },
-                    img { src: piece.get_icon(), alt: piece.to_string() }
                 }
             }
         }

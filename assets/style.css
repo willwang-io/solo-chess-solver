@@ -3,8 +3,6 @@
   --board-border: #222;
   --light-square: #f0d9b5;
   --dark-square: #b58863;
-  --piece-color: #111;
-  --piece-shadow: rgba(0, 0, 0, 0.25);
 }
 
 .chessboard {
@@ -35,13 +33,7 @@
 }
 
 .piece {
-  color: var(--piece-color);
-  font-weight: 600;
   cursor: grab;
-  text-shadow: 0 1px 2px var(--piece-shadow);
-}
-
-.piece img {
   width: var(--square-size);
   height: var(--square-size);
 }
