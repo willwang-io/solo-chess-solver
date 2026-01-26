@@ -61,13 +61,13 @@ fn Square(
                 let mut b = board.write();
                 if fr >= b.len() || fc >= b[0].len() { return; }
 
-                if let Some(p) = b[fr][fc].piece {
-                    b[fr][fc].piece = None;
-                    b[r][c].piece = Some(p);
+                if let Some(p) = b[fr][fc].piece() {
+                    b[fr][fc].clear_cell();
+                    b[r][c].set_cell(p);
                 }
             },
 
-            if let Some(piece) = cell.piece {
+            if let Some(piece) = cell.piece() {
                 img {
                     src: piece.get_icon(),
                     alt: piece.to_string(),

@@ -6,7 +6,8 @@ pub struct Cell {
     // Note: Coordinates are 0-indexed with (0,0) at the bottom-left (a1) and (7,7) at the top-right (h8).
     pub row: usize,
     pub col: usize,
-    pub piece: Option<Piece>,
+    piece: Option<Piece>,
+    used_capture: usize,
 }
 
 impl fmt::Display for Cell {
@@ -18,27 +19,38 @@ impl fmt::Display for Cell {
     }
 }
 
+impl Cell {
+    pub fn new(row: usize, col: usize) -> Self {
+        Self {
+            row, 
+            col, 
+            piece: None,
+            used_capture: 2,
+        }
+    }
+
+    pub fn clear_cell(&mut self) {
+        self.piece = None;
+    }
+
+    pub fn set_cell(&mut self, piece: Piece) {
+        self.piece = Some(piece);
+    }
+
+    pub fn piece(&self) -> Option<Piece> {
+        self.piece
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn chessboard_coordinates_conversion() {
-        let a1 = Cell {
-            row: 0,
-            col: 0,
-            piece: None,
-        };
-        let h8 = Cell {
-            row: 7,
-            col: 7,
-            piece: None,
-        };
-        let e4 = Cell {
-            row: 3,
-            col: 4,
-            piece: None,
-        };
+        let a1 = Cell::new(0, 0);
+        let h8 = Cell::new(7, 7);
+        let e4 = Cell::new(3, 4);
 
         assert_eq!("a1", a1.to_string());
         assert_eq!("h8", h8.to_string());

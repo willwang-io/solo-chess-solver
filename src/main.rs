@@ -22,11 +22,7 @@ fn App() -> Element {
         .rev()
         .map(|row| {
             (0..8)
-                .map(|col| Cell {
-                    row,
-                    col,
-                    piece: None,
-                })
+                .map(|col| Cell::new(row, col))
                 .collect()
         })
         .collect();
@@ -39,14 +35,14 @@ fn App() -> Element {
         selected_square.set(Some((r, c)));
         if let Some(p) = selected_piece() {
             board_state.with_mut(|b| {
-                b[r][c].piece = Some(Piece::ALL[p]);
+                b[r][c].set_cell(Piece::ALL[p]);
             });
         }
     };
 
     let on_square_right_click = move |(r, c): (usize, usize)| {
             board_state.with_mut(|b| {
-                b[r][c].piece = None;
+                b[r][c].clear_cell();
             });
     };
 
