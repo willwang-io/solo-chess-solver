@@ -3,13 +3,23 @@ use dioxus::prelude::*;
 use crate::cell::Cell;
 
 #[component]
-pub fn Chessboard(board: Signal<Vec<Vec<Cell>>>) -> Element {
+pub fn Chessboard(
+    board: Signal<Vec<Vec<Cell>>>,
+    on_square_click: EventHandler<(usize, usize)>,
+    on_square_right_click: EventHandler<(usize, usize)>,
+) -> Element {
     rsx! {
         div {
             class: "chessboard",
             for r in 0..8 {
                 for c in 0..8 {
-                    Square { key: "{r}-{c}", board, r, c }
+                    Square {
+                        key: "{r}-{c}",
+                        board,
+                        r, c,
+                        on_square_click,
+                        on_square_right_click,
+                    }
                 }
             }
         }
@@ -17,12 +27,23 @@ pub fn Chessboard(board: Signal<Vec<Vec<Cell>>>) -> Element {
 }
 
 #[component]
-fn Square(board: Signal<Vec<Vec<Cell>>>, r: usize, c: usize) -> Element {
+fn Square(
+    board: Signal<Vec<Vec<Cell>>>,
+    r: usize,
+    c: usize,
+    on_square_click: EventHandler<(usize, usize)>,
+    on_square_right_click: EventHandler<(usize, usize)>,
+) -> Element {
     let cell = board.read()[r][c];
 
     rsx! {
         div {
             class: if (r + c) % 2 == 0 { "square light" } else { "square dark" },
+            onclick: move |_| on_square_click.call((r, c)),
+            oncontextmenu: move |e| {
+                e.prevent_default();
+                on_square_right_click.call((r, c));
+            },
             ondragover: move |e| e.prevent_default(),
             ondrop: move |e| {
                 e.prevent_default();
@@ -32,7 +53,7 @@ fn Square(board: Signal<Vec<Vec<Cell>>>, r: usize, c: usize) -> Element {
                     .and_then(|s| {
                         let (r, c) = s.split_once(',')?;
                         Some((r.parse::<usize>().ok()?, c.parse::<usize>().ok()?))
-                    }) 
+                    })
                 else {
                     return;
                 };

@@ -6,7 +6,7 @@ use crate::piece::Piece;
 pub fn PieceSelectionBoard(selected: Signal<Option<usize>>) -> Element {
     rsx! {
         form {
-            p { "Select the piece to place on the board" }
+            p { "Select the piece to place on the board. Right-click to clear it." }
             for (idx, piece) in Piece::ALL.iter().enumerate() {
                 label {
                     input {
