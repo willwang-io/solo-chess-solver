@@ -4,7 +4,7 @@ use crate::cell::Cell;
 
 #[component]
 pub fn Chessboard(
-    board: Signal<Vec<Vec<Cell>>>,
+    board: Signal<Vec<Cell>>,
     on_square_click: EventHandler<(usize, usize)>,
     on_square_right_click: EventHandler<(usize, usize)>,
 ) -> Element {
@@ -28,13 +28,14 @@ pub fn Chessboard(
 
 #[component]
 fn Square(
-    board: Signal<Vec<Vec<Cell>>>,
+    board: Signal<Vec<Cell>>,
     r: usize,
     c: usize,
     on_square_click: EventHandler<(usize, usize)>,
     on_square_right_click: EventHandler<(usize, usize)>,
 ) -> Element {
-    let cell = board.read()[r][c];
+    let idx = r * 8 + c;
+    let cell = board.read()[idx];
 
     rsx! {
         div {
@@ -47,23 +48,20 @@ fn Square(
             ondragover: move |e| e.prevent_default(),
             ondrop: move |e| {
                 e.prevent_default();
-                let Some((fr, fc)) = e
+                let Some(f_idx) = e
                     .data_transfer()
                     .get_data("text/plain")
-                    .and_then(|s| {
-                        let (r, c) = s.split_once(',')?;
-                        Some((r.parse::<usize>().ok()?, c.parse::<usize>().ok()?))
-                    })
+                    .and_then(|s| Some(s.parse::<usize>().ok()?))
                 else {
                     return;
                 };
 
                 let mut b = board.write();
-                if fr >= b.len() || fc >= b[0].len() { return; }
+                if f_idx >= 64 { return; }
 
-                if let Some(p) = b[fr][fc].piece() {
-                    b[fr][fc].clear_cell();
-                    b[r][c].set_cell(p);
+                if let Some(p) = b[f_idx].piece() {
+                    b[f_idx].clear_cell();
+                    b[idx].set_cell(p);
                 }
             },
 
@@ -74,7 +72,7 @@ fn Square(
                     class: "piece",
                     draggable: "true",
                     ondragstart: move |e| {
-                        let _ = e.data_transfer().set_data("text/plain", &format!("{r},{c}"));
+                        let _ = e.data_transfer().set_data("text/plain", &idx.to_string());
                     },
                 }
             }
