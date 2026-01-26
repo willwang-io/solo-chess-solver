@@ -1,4 +1,5 @@
 use core::fmt;
+use dioxus::prelude::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Piece {
@@ -33,4 +34,15 @@ impl Piece {
         Piece::Knight,
         Piece::Pawn,
     ];
+
+    pub fn get_icon(&self) -> Asset {
+        match self {
+            Piece::King => asset!("/assets/img/white/king.png"),
+            Piece::Queen => asset!("/assets/img/white/queen.png"),
+            Piece::Bishop => asset!("/assets/img/white/bishop.png"),
+            Piece::Rook => asset!("/assets/img/white/rook.png"),
+            Piece::Knight => asset!("/assets/img/white/knight.png"),
+            Piece::Pawn => asset!("/assets/img/white/pawn.png"),
+        }
+    }
 }
