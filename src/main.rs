@@ -6,7 +6,7 @@ mod solver;
 mod ui;
 
 use board::Board;
-use piece::Piece;
+use piece::{Piece, PieceType};
 use ui::chessboard::Chessboard;
 use ui::piece_selection_board::PieceSelectionBoard;
 
@@ -18,7 +18,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let mut board = Board::new();
+    let board = Board::new();
 
     let mut board_state = use_signal(|| board);
     let mut selected_square = use_signal(|| Option::<(usize, usize)>::None);
@@ -28,7 +28,7 @@ fn App() -> Element {
         selected_square.set(Some((r, c)));
         if let Some(p) = selected_piece() {
             board_state.with_mut(|b| {
-                b.set_cell(r, c, Piece::ALL[p]);
+                b.set_cell(r, c, Piece::new(PieceType::ALL[p]));
             });
         }
     };

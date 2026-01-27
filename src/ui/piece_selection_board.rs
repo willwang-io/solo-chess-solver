@@ -1,13 +1,13 @@
 use dioxus::prelude::*;
 
-use crate::piece::Piece;
+use crate::piece::PieceType;
 
 #[component]
 pub fn PieceSelectionBoard(selected: Signal<Option<usize>>) -> Element {
     rsx! {
         form {
             p { "Select the piece to place on the board. Right-click to clear it." }
-            for (idx, piece) in Piece::ALL.iter().enumerate() {
+            for (idx, piece) in PieceType::ALL.iter().enumerate() {
                 label {
                     input {
                         type: "radio",

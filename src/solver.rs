@@ -1,4 +1,4 @@
-use crate::{board::Board, piece::Piece};
+use crate::{board::Board, piece::PieceType};
 
 // 0..4 are Bishop directions; 4.. are Rook directions. Together combine they cover queen and king directions.
 const SLIDER_MOVE: &[(i32, i32)] = &[
@@ -24,24 +24,6 @@ const KNIGHT_MOVE: &[(i32, i32)] = &[
 ];
 
 pub fn solo_chess_solver(board: &Board) -> bool {
-    // fn dfs(board: &mut Board) -> bool {
-    //     if board.count_pieces() > 1 {
-    //         let capture_pairs = get_all_capture_pairs(board);
-    //         for (fr, fc, tr, tc) in capture_pairs {
-    //             let from_piece = board.get_cell(fr, fc);
-    //             let to_piece = board.get_cell(tr, tc);
-    //             board.move_piece(fr, fc, tr, tc);
-    //             if dfs(board) {
-    //                 return true;
-    //             }
-    //             board.set_cell(fr, fc, from_piece);
-    //             board.set_cell(tr, tc, to_piece);
-    //         }
-    //         false
-    //     } else {
-    //         true
-    //     }
-    // }
     true
 }
 
@@ -51,27 +33,27 @@ fn get_all_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
     let mut capture_pairs = vec![];
 
     for (r, c, &p) in all_pieces {
-        // TODO: if p's available move is zero, skip it.
-        // let mut cr = r;
-        // let mut cc = c;
-        match p {
-            Piece::King | Piece::Queen => {
+        if p.move_left == 0 {
+            continue;
+        }
+        match p.piece_type {
+            PieceType::King | PieceType::Queen => {
                 let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE);
                 capture_pairs.extend_from_slice(&tmp);
             }
-            Piece::Bishop => {
+            PieceType::Bishop => {
                 let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE[..4]);
                 capture_pairs.extend_from_slice(&tmp);
             }
-            Piece::Rook => {
+            PieceType::Rook => {
                 let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE[4..]);
                 capture_pairs.extend_from_slice(&tmp);
             }
-            Piece::Knight => {
+            PieceType::Knight => {
                 let tmp = get_can_capture_cell(&board, r, c, &KNIGHT_MOVE);
                 capture_pairs.extend_from_slice(&tmp);
             }
-            Piece::Pawn => {
+            PieceType::Pawn => {
                 if r >= 1 && c >= 1 && is_non_king_occupied(board, r - 1, c - 1) {
                     capture_pairs.push((r, c, r - 1, c - 1));
                 }
@@ -87,7 +69,8 @@ fn get_all_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
 // Note: Base on the game rule, if King present, it must be the last piece,
 // hence, no other piece can capture it at all time.
 fn is_non_king_occupied(board: &Board, r: usize, c: usize) -> bool {
-    !board.is_empty(r, c) && board.get_cell(r, c) != Some(Piece::King)
+    !board.is_empty(r, c)
+        && board.get_cell(r, c).map(|p| p.piece_type) != Some(PieceType::King)
 }
 
 fn get_can_capture_cell(
@@ -97,7 +80,7 @@ fn get_can_capture_cell(
     move_rules: &[(i32, i32)],
 ) -> Vec<(usize, usize, usize, usize)> {
     let mut can_capture_cell = vec![];
-    let is_king = board.get_cell(r, c) == Some(Piece::King);
+    let is_king = board.get_cell(r, c).map(|p| p.piece_type) == Some(PieceType::King);
 
     for (dr, dc) in move_rules {
         let mut cr = r as i32;
@@ -126,6 +109,7 @@ fn get_can_capture_cell(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::piece::Piece;
 
     #[test]
     fn test_solo_chess_solver() {
@@ -136,19 +120,19 @@ mod test {
     fn get_all_capture_pairs_for_knight() {
         let mut board = Board::new();
         // No capturable pieces
-        board.set_cell(4, 4, Piece::Knight);
+        board.set_cell(4, 4, Piece::new(PieceType::Knight));
         let capture_pairs = get_all_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Pieces can be captured in all direction of the Knight, but one of them is the King.
-        board.set_cell(5, 6, Piece::Pawn);
-        board.set_cell(5, 2, Piece::Pawn);
-        board.set_cell(3, 6, Piece::Pawn);
-        board.set_cell(3, 2, Piece::Pawn);
-        board.set_cell(2, 5, Piece::Pawn);
-        board.set_cell(6, 5, Piece::Pawn);
-        board.set_cell(2, 3, Piece::Pawn);
-        board.set_cell(6, 3, Piece::King);
+        board.set_cell(5, 6, Piece::new(PieceType::Pawn));
+        board.set_cell(5, 2, Piece::new(PieceType::Pawn));
+        board.set_cell(3, 6, Piece::new(PieceType::Pawn));
+        board.set_cell(3, 2, Piece::new(PieceType::Pawn));
+        board.set_cell(2, 5, Piece::new(PieceType::Pawn));
+        board.set_cell(6, 5, Piece::new(PieceType::Pawn));
+        board.set_cell(2, 3, Piece::new(PieceType::Pawn));
+        board.set_cell(6, 3, Piece::new(PieceType::King));
         let capture_pairs = get_all_capture_pairs(&board);
         assert_vec_eq_unordered(
             &vec![
@@ -175,13 +159,13 @@ mod test {
         let mut board = Board::new();
 
         // No capturable pieces
-        board.set_cell(5, 3, Piece::Queen);
+        board.set_cell(5, 3, Piece::new(PieceType::Queen));
         let capture_pairs = get_all_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Two pawns are aligned on one of the queen’s lines of attack. It should capture only the closest one.
-        board.set_cell(5, 0, Piece::Pawn);
-        board.set_cell(5, 1, Piece::Pawn);
+        board.set_cell(5, 0, Piece::new(PieceType::Pawn));
+        board.set_cell(5, 1, Piece::new(PieceType::Pawn));
         let capture_pairs = get_all_capture_pairs(&board);
         assert_eq!(vec![(5, 3, 5, 1)], capture_pairs);
 
@@ -197,16 +181,16 @@ mod test {
         . . . P . . . .
         . P . . . K . .
          */
-        board.set_cell(0, 3, Piece::Pawn);
-        board.set_cell(1, 7, Piece::Pawn);
-        board.set_cell(2, 0, Piece::Pawn);
-        board.set_cell(5, 7, Piece::Pawn);
-        board.set_cell(6, 3, Piece::Pawn);
-        board.set_cell(7, 1, Piece::Pawn);
-        board.set_cell(7, 5, Piece::King);
+        board.set_cell(0, 3, Piece::new(PieceType::Pawn));
+        board.set_cell(1, 7, Piece::new(PieceType::Pawn));
+        board.set_cell(2, 0, Piece::new(PieceType::Pawn));
+        board.set_cell(5, 7, Piece::new(PieceType::Pawn));
+        board.set_cell(6, 3, Piece::new(PieceType::Pawn));
+        board.set_cell(7, 1, Piece::new(PieceType::Pawn));
+        board.set_cell(7, 5, Piece::new(PieceType::King));
         // Not attackable from the queen’s position.
-        board.set_cell(2, 4, Piece::Pawn);
-        board.set_cell(0, 1, Piece::Pawn);
+        board.set_cell(2, 4, Piece::new(PieceType::Pawn));
+        board.set_cell(0, 1, Piece::new(PieceType::Pawn));
 
         let capture_pairs = get_all_capture_pairs(&board);
         assert_vec_eq_unordered(
@@ -223,7 +207,7 @@ mod test {
         );
 
         // Replace the queen with a king. Only adjacent pieces should be capturable.
-        board.set_cell(5, 3, Piece::King);
+        board.set_cell(5, 3, Piece::new(PieceType::King));
         let capture_pairs = get_all_capture_pairs(&board);
         assert_vec_eq_unordered(&vec![(5, 3, 6, 3)], &capture_pairs);
     }
@@ -233,17 +217,17 @@ mod test {
         let mut board = Board::new();
 
         // No capturable pieces
-        board.set_cell(4, 4, Piece::Pawn);
+        board.set_cell(4, 4, Piece::new(PieceType::Pawn));
         let capture_pairs = get_all_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Piece on the left diagonal
-        board.set_cell(3, 3, Piece::Pawn);
+        board.set_cell(3, 3, Piece::new(PieceType::Pawn));
         let capture_pairs = get_all_capture_pairs(&board);
         assert_eq!(vec![(4, 4, 3, 3)], capture_pairs);
 
         // Another piece on the right diagonal
-        board.set_cell(3, 5, Piece::Pawn);
+        board.set_cell(3, 5, Piece::new(PieceType::Pawn));
         let capture_pairs = get_all_capture_pairs(&board);
         assert_vec_eq_unordered(&vec![(4, 4, 3, 3), (4, 4, 3, 5)], &capture_pairs);
     }
@@ -251,7 +235,7 @@ mod test {
     #[test]
     fn test_is_non_king_occupied() {
         let mut board = Board::new();
-        board.set_cell(4, 4, Piece::King);
+        board.set_cell(4, 4, Piece::new(PieceType::King));
 
         assert!(!is_non_king_occupied(&board, 4, 4));
     }
