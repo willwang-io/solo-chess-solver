@@ -13,8 +13,8 @@ impl Board {
         }
     }
 
-    pub fn set_cell(&mut self, r: usize, c: usize, p: Option<Piece>) {
-        self.cells[r * N + c] = p;
+    pub fn set_cell(&mut self, r: usize, c: usize, p: Piece) {
+        self.cells[r * N + c] = Some(p);
     }
 
     pub fn get_cell(&self, r: usize, c: usize) -> Option<Piece> {
@@ -22,7 +22,7 @@ impl Board {
     }
 
     pub fn clear_cell(&mut self, r: usize, c: usize) {
-        self.set_cell(r, c, None);
+        self.cells[r * N + c] = None;
     }
 
     pub fn move_piece(&mut self, fr: usize, fc: usize, tr: usize, tc: usize) {
@@ -30,8 +30,10 @@ impl Board {
             return;
         }
 
-        self.set_cell(tr, tc, self.get_cell(fr, fc));
-        self.clear_cell(fr, fc);
+        if let Some(p) = self.get_cell(fr, fc) {
+            self.set_cell(tr, tc, p);
+            self.clear_cell(fr, fc);
+        }
     }
 
     pub fn pieces(&self) -> impl Iterator<Item = (usize, usize, &Piece)> {
@@ -60,15 +62,15 @@ mod test {
         let mut board = Board::new();
         assert_eq!(0, board.count_pieces());
 
-        board.set_cell(0, 4, Some(Piece::Bishop));
-        board.set_cell(5, 7, Some(Piece::Queen));
+        board.set_cell(0, 4, Piece::Bishop);
+        board.set_cell(5, 7, Piece::Queen);
         assert_eq!(2, board.count_pieces());
     }
 
     #[test]
     fn move_piece() {
         let mut board = Board::new();
-        board.set_cell(0, 4, Some(Piece::Bishop));
+        board.set_cell(0, 4, Piece::Bishop);
         board.move_piece(0, 4, 2, 6);
 
         assert!(board.get_cell(0, 4).is_none());
@@ -78,9 +80,9 @@ mod test {
     #[test]
     fn get_pieces_and_count() {
         let mut board = Board::new();
-        board.set_cell(0, 4, Some(Piece::Bishop));
-        board.set_cell(3, 5, Some(Piece::Bishop));
-        board.set_cell(4, 7, Some(Piece::Pawn));
+        board.set_cell(0, 4, Piece::Bishop);
+        board.set_cell(3, 5, Piece::Bishop);
+        board.set_cell(4, 7, Piece::Pawn);
 
         assert_eq!(3, board.count_pieces());
         let pieces: Vec<(usize, usize, Piece)> =

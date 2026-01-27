@@ -18,8 +18,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    // let board: Vec<Cell> = (0..64).rev().map(|i| Cell::new(i / 8, i % 8)).collect();
-    let board = Board::new();
+    let mut board = Board::new();
 
     let mut board_state = use_signal(|| board);
     let mut selected_square = use_signal(|| Option::<(usize, usize)>::None);
@@ -29,7 +28,7 @@ fn App() -> Element {
         selected_square.set(Some((r, c)));
         if let Some(p) = selected_piece() {
             board_state.with_mut(|b| {
-                b.set_cell(r, c, Some(Piece::ALL[p]));
+                b.set_cell(r, c, Piece::ALL[p]);
             });
         }
     };
