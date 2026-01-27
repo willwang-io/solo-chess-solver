@@ -1,11 +1,11 @@
 use dioxus::prelude::*;
 
-mod cell;
+mod board;
 mod piece;
 mod solver;
 mod ui;
 
-use cell::Cell;
+use board::Board;
 use piece::Piece;
 use ui::chessboard::Chessboard;
 use ui::piece_selection_board::PieceSelectionBoard;
@@ -18,7 +18,8 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let board: Vec<Cell> = (0..64).rev().map(|i| Cell::new(i / 8, i % 8)).collect();
+    // let board: Vec<Cell> = (0..64).rev().map(|i| Cell::new(i / 8, i % 8)).collect();
+    let board = Board::new();
 
     let mut board_state = use_signal(|| board);
     let mut selected_square = use_signal(|| Option::<(usize, usize)>::None);
@@ -28,14 +29,14 @@ fn App() -> Element {
         selected_square.set(Some((r, c)));
         if let Some(p) = selected_piece() {
             board_state.with_mut(|b| {
-                b[r * 8 + c].set_cell(Piece::ALL[p]);
+                b.set_cell(r, c, Some(Piece::ALL[p]));
             });
         }
     };
 
     let on_square_right_click = move |(r, c): (usize, usize)| {
         board_state.with_mut(|b| {
-            b[r * 8 + c].clear_cell();
+            b.clear_cell(r, c);
         });
     };
 
