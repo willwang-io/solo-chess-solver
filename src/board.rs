@@ -26,9 +26,72 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, fr: usize, fc: usize, tr: usize, tc: usize) {
-        assert!(!self.cells[fr * N + fc].is_none());
+        if fr == tr && fc == tc {
+            return;
+        }
 
         self.set_cell(tr, tc, self.get_cell(fr, fc));
         self.clear_cell(fr, fc);
+    }
+
+    pub fn pieces(&self) -> impl Iterator<Item = (usize, usize, &Piece)> {
+        self.cells
+            .iter()
+            .enumerate()
+            .filter_map(|(i, p)| p.as_ref().map(|p| (i / 8, i % 8, p)))
+    }
+
+    pub fn count_pieces(&self) -> usize {
+        self.pieces().count()
+    }
+
+    pub fn is_empty(&self, r: usize, c: usize) -> bool {
+        self.get_cell(r, c).is_none()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::board::Board;
+    use crate::piece::Piece;
+
+    #[test]
+    fn count_pieces() {
+        let mut board = Board::new();
+        assert_eq!(0, board.count_pieces());
+
+        board.set_cell(0, 4, Some(Piece::Bishop));
+        board.set_cell(5, 7, Some(Piece::Queen));
+        assert_eq!(2, board.count_pieces());
+    }
+
+    #[test]
+    fn move_piece() {
+        let mut board = Board::new();
+        board.set_cell(0, 4, Some(Piece::Bishop));
+        board.move_piece(0, 4, 2, 6);
+
+        assert!(board.get_cell(0, 4).is_none());
+        assert_eq!(Some(Piece::Bishop), board.get_cell(2, 6));
+    }
+
+    #[test]
+    fn get_pieces_and_count() {
+        let mut board = Board::new();
+        board.set_cell(0, 4, Some(Piece::Bishop));
+        board.set_cell(3, 5, Some(Piece::Bishop));
+        board.set_cell(4, 7, Some(Piece::Pawn));
+
+        assert_eq!(3, board.count_pieces());
+        let pieces: Vec<(usize, usize, Piece)> =
+            board.pieces().map(|(r, c, p)| (r, c, *p)).collect();
+        assert_eq!(
+            vec![
+                (0, 4, Piece::Bishop),
+                (3, 5, Piece::Bishop),
+                (4, 7, Piece::Pawn)
+            ],
+            pieces
+        );
     }
 }

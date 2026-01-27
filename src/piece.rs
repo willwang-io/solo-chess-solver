@@ -1,7 +1,7 @@
 use core::fmt;
 use dioxus::prelude::*;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Piece {
     King,
     Queen,
