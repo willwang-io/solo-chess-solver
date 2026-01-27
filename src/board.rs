@@ -30,7 +30,8 @@ impl Board {
             return;
         }
 
-        if let Some(p) = self.get_cell(fr, fc) {
+        if let Some(mut p) = self.get_cell(fr, fc) {
+            p.use_move();
             self.set_cell(tr, tc, p);
             self.clear_cell(fr, fc);
         }

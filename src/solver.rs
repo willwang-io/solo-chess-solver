@@ -1,7 +1,7 @@
 use crate::{board::Board, piece::PieceType};
 
-// 0..2 are Pawn attack directions (Remainder: every move must be a capture under solo-chess rule)
-// 0..4 are Bishop move directions
+// 0..2 are Pawn attack directions (Remainder: every move must be a capture under solo-chess rule);
+// 0..4 are Bishop move directions;
 // 4.. are Rook move directions.
 // Combine together they cover Queen and King directions.
 const SLIDER_MOVE: &[(i32, i32)] = &[
@@ -26,16 +26,20 @@ const KNIGHT_MOVE: &[(i32, i32)] = &[
     (-1, -2),
 ];
 
-pub fn solo_chess_solver(board: &Board) -> bool {
+pub fn solo_chess_solver(board: &mut Board) -> bool {
+    fn dfs(board: &mut Board) {
+
+    }
+    // dfs(&mut board);
     true
 }
 
-fn get_all_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
+fn list_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
     let all_pieces = board.pieces();
     let mut capture_pairs = vec![];
 
     for (r, c, &p) in all_pieces {
-        if p.move_left == 0 {
+        if p.move_left() == 0 {
             continue;
         }
         let move_rules = match p.piece_type {
@@ -45,7 +49,7 @@ fn get_all_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
             PieceType::Knight => &KNIGHT_MOVE,
             PieceType::Pawn => &SLIDER_MOVE[..2],
         };
-        let tmp = get_can_capture_cell(&board, r, c, move_rules);
+        let tmp = get_capturable_cells(&board, r, c, move_rules);
         capture_pairs.extend_from_slice(&tmp);
     }
 
@@ -58,7 +62,7 @@ fn is_non_king_occupied(board: &Board, r: usize, c: usize) -> bool {
     !board.is_empty(r, c) && board.get_cell(r, c).map(|p| p.piece_type) != Some(PieceType::King)
 }
 
-fn get_can_capture_cell(
+fn get_capturable_cells(
     board: &Board,
     r: usize,
     c: usize,
@@ -98,14 +102,26 @@ mod test {
     use crate::piece::Piece;
 
     #[test]
-    fn test_solo_chess_solver() {}
+    fn unable_to_capture_piece_if_no_move_left() {
+        let mut board = Board::new();
+
+        let queen = Piece::new(PieceType::Queen);
+        board.set_cell(4, 4, queen);
+        board.set_cell(3, 3, Piece::new(PieceType::Rook));
+
+        board.move_piece(4, 4, 0, 0);
+        board.move_piece(0, 0, 4, 4);
+
+        let capture_pairs = list_capture_pairs(&board);
+        assert!(capture_pairs.is_empty());
+    }
 
     #[test]
     fn get_all_capture_pairs_for_knight() {
         let mut board = Board::new();
         // No capturable pieces
         board.set_cell(4, 4, Piece::new(PieceType::Knight));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Pieces can be captured in all direction of the Knight, but one of them is the King.
@@ -117,7 +133,7 @@ mod test {
         board.set_cell(6, 5, Piece::new(PieceType::Pawn));
         board.set_cell(2, 3, Piece::new(PieceType::Pawn));
         board.set_cell(6, 3, Piece::new(PieceType::King));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(
             &vec![
                 (4, 4, 5, 6),
@@ -144,13 +160,13 @@ mod test {
 
         // No capturable pieces
         board.set_cell(5, 3, Piece::new(PieceType::Queen));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Two pawns are aligned on one of the queen’s lines of attack. It should capture only the closest one.
         board.set_cell(5, 0, Piece::new(PieceType::Pawn));
         board.set_cell(5, 1, Piece::new(PieceType::Pawn));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_eq!(vec![(5, 3, 5, 1)], capture_pairs);
 
         /*
@@ -176,7 +192,7 @@ mod test {
         board.set_cell(2, 4, Piece::new(PieceType::Pawn));
         board.set_cell(0, 1, Piece::new(PieceType::Pawn));
 
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(
             &vec![
                 (5, 3, 0, 3),
@@ -192,7 +208,7 @@ mod test {
 
         // Replace the queen with a king. Only adjacent pieces should be capturable.
         board.set_cell(5, 3, Piece::new(PieceType::King));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(&vec![(5, 3, 6, 3)], &capture_pairs);
     }
 
@@ -202,17 +218,17 @@ mod test {
 
         // No capturable pieces
         board.set_cell(4, 4, Piece::new(PieceType::Pawn));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
         // Piece on the left diagonal
         board.set_cell(3, 3, Piece::new(PieceType::Pawn));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_eq!(vec![(4, 4, 3, 3)], capture_pairs);
 
         // Another piece on the right diagonal
         board.set_cell(3, 5, Piece::new(PieceType::Pawn));
-        let capture_pairs = get_all_capture_pairs(&board);
+        let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(&vec![(4, 4, 3, 3), (4, 4, 3, 5)], &capture_pairs);
     }
 

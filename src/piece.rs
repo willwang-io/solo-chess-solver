@@ -13,7 +13,7 @@ pub enum PieceType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Piece {
-    pub move_left: usize,
+    move_left: usize,
     pub piece_type: PieceType,
 }
 
@@ -29,6 +29,14 @@ impl Piece {
 
     pub fn get_icon(&self) -> Asset {
         self.piece_type.get_icon()
+    }
+
+    pub fn use_move(&mut self) {
+        self.move_left = self.move_left.saturating_sub(1);
+    } 
+
+    pub fn move_left(&self) -> usize {
+        self.move_left
     }
 }
 
