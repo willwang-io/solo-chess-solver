@@ -1,6 +1,9 @@
 use crate::{board::Board, piece::PieceType};
 
-// 0..4 are Bishop directions; 4.. are Rook directions. Together combine they cover queen and king directions.
+// 0..2 are Pawn attack directions (Remainder: every move must be a capture under solo-chess rule)
+// 0..4 are Bishop move directions
+// 4.. are Rook move directions.
+// Combine together they cover Queen and King directions.
 const SLIDER_MOVE: &[(i32, i32)] = &[
     (-1, 1),
     (-1, -1),
@@ -29,48 +32,30 @@ pub fn solo_chess_solver(board: &Board) -> bool {
 
 fn get_all_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
     let all_pieces = board.pieces();
-
     let mut capture_pairs = vec![];
 
     for (r, c, &p) in all_pieces {
         if p.move_left == 0 {
             continue;
         }
-        match p.piece_type {
-            PieceType::King | PieceType::Queen => {
-                let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE);
-                capture_pairs.extend_from_slice(&tmp);
-            }
-            PieceType::Bishop => {
-                let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE[..4]);
-                capture_pairs.extend_from_slice(&tmp);
-            }
-            PieceType::Rook => {
-                let tmp = get_can_capture_cell(&board, r, c, &SLIDER_MOVE[4..]);
-                capture_pairs.extend_from_slice(&tmp);
-            }
-            PieceType::Knight => {
-                let tmp = get_can_capture_cell(&board, r, c, &KNIGHT_MOVE);
-                capture_pairs.extend_from_slice(&tmp);
-            }
-            PieceType::Pawn => {
-                if r >= 1 && c >= 1 && is_non_king_occupied(board, r - 1, c - 1) {
-                    capture_pairs.push((r, c, r - 1, c - 1));
-                }
-                if r >= 1 && c + 1 < 8 && is_non_king_occupied(board, r - 1, c + 1) {
-                    capture_pairs.push((r, c, r - 1, c + 1));
-                }
-            }
+        let move_rules = match p.piece_type {
+            PieceType::King | PieceType::Queen => &SLIDER_MOVE,
+            PieceType::Bishop => &SLIDER_MOVE[..4],
+            PieceType::Rook => &SLIDER_MOVE[4..],
+            PieceType::Knight => &KNIGHT_MOVE,
+            PieceType::Pawn => &SLIDER_MOVE[..2],
         };
+        let tmp = get_can_capture_cell(&board, r, c, move_rules);
+        capture_pairs.extend_from_slice(&tmp);
     }
+
     capture_pairs
 }
 
 // Note: Base on the game rule, if King present, it must be the last piece,
 // hence, no other piece can capture it at all time.
 fn is_non_king_occupied(board: &Board, r: usize, c: usize) -> bool {
-    !board.is_empty(r, c)
-        && board.get_cell(r, c).map(|p| p.piece_type) != Some(PieceType::King)
+    !board.is_empty(r, c) && board.get_cell(r, c).map(|p| p.piece_type) != Some(PieceType::King)
 }
 
 fn get_can_capture_cell(
@@ -81,6 +66,7 @@ fn get_can_capture_cell(
 ) -> Vec<(usize, usize, usize, usize)> {
     let mut can_capture_cell = vec![];
     let is_king = board.get_cell(r, c).map(|p| p.piece_type) == Some(PieceType::King);
+    let is_pawn = board.get_cell(r, c).map(|p| p.piece_type) == Some(PieceType::Pawn);
 
     for (dr, dc) in move_rules {
         let mut cr = r as i32;
@@ -97,8 +83,8 @@ fn get_can_capture_cell(
                 can_capture_cell.push((r, c, ur, uc));
                 break;
             }
-            // King can only move one space.
-            if is_king {
+            // King and Pawn can only move one space.
+            if is_king || is_pawn {
                 break;
             }
         }
@@ -112,9 +98,7 @@ mod test {
     use crate::piece::Piece;
 
     #[test]
-    fn test_solo_chess_solver() {
-
-    }
+    fn test_solo_chess_solver() {}
 
     #[test]
     fn get_all_capture_pairs_for_knight() {

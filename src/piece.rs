@@ -1,7 +1,6 @@
 use core::fmt;
 use dioxus::prelude::*;
 
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PieceType {
     King,
@@ -19,7 +18,7 @@ pub struct Piece {
 }
 
 impl Piece {
-    const DEFAULT_MOVE_LEFT: usize = 2; 
+    const DEFAULT_MOVE_LEFT: usize = 2;
 
     pub fn new(piece_type: PieceType) -> Self {
         Self {
