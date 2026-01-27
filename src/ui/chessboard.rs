@@ -11,15 +11,14 @@ pub fn Chessboard(
     rsx! {
         div {
             class: "chessboard",
-            for r in 0..8 {
-                for c in 0..8 {
-                    Square {
-                        key: "{r}-{c}",
-                        board,
-                        r, c,
-                        on_square_click,
-                        on_square_right_click,
-                    }
+            for i in 0..64 {
+                Square {
+                    key: "{i / 8}-{i % 8}",
+                    board,
+                    r: i / 8,
+                    c: i % 8,
+                    on_square_click,
+                    on_square_right_click,
                 }
             }
         }
@@ -40,12 +39,16 @@ fn Square(
     rsx! {
         div {
             class: if (r + c) % 2 == 0 { "square light" } else { "square dark" },
+
             onclick: move |_| on_square_click.call((r, c)),
+
             oncontextmenu: move |e| {
                 e.prevent_default();
                 on_square_right_click.call((r, c));
             },
+
             ondragover: move |e| e.prevent_default(),
+
             ondrop: move |e| {
                 e.prevent_default();
                 let Some(f_idx) = e
