@@ -7,8 +7,11 @@ mod ui;
 
 use board::Board;
 use piece::{Piece, PieceType};
+use solver::solo_chess_solver;
 use ui::chessboard::Chessboard;
-use ui::piece_selection_board::PieceSelectionBoard;
+use ui::piece_selection::PieceSelectionBoard;
+use ui::solution::Solution;
+use ui::step_arrows::StepArrows;
 
 const STYLE: Asset = asset!("/assets/style.css");
 
@@ -39,15 +42,23 @@ fn App() -> Element {
         });
     };
 
+    let mut solver_board = board_state();
+    let steps = solo_chess_solver(&mut solver_board);
+
     rsx! {
         document::Link { rel: "stylesheet", href: STYLE }
         div {
-            Chessboard {
-                board: board_state,
-                on_square_click,
-                on_square_right_click,
+            div {
+                class: "board-stack",
+                Chessboard {
+                    board: board_state,
+                    on_square_click,
+                    on_square_right_click,
+                }
+                StepArrows { steps: steps.clone() }
             }
             PieceSelectionBoard { selected: selected_piece }
+            Solution { steps }
         }
     }
 }

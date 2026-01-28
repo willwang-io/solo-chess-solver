@@ -3,6 +3,16 @@
   --board-border: #222;
   --light-square: #f0d9b5;
   --dark-square: #b58863;
+  --step-arrow: #68bbe3;
+  --step-arrow-opacity: 0.85;
+  --step-arrow-first-opacity: 0.85;
+  --step-arrow-stroke: 0.1;
+}
+
+.board-stack {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
 }
 
 .chessboard {
@@ -13,6 +23,17 @@
   width: fit-content;
   gap: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.chessboard-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .square {
@@ -40,4 +61,15 @@
 
 .piece:active {
   cursor: grabbing;
+}
+
+.step-arrow {
+  stroke: var(--step-arrow);
+  stroke-width: var(--step-arrow-stroke);
+  stroke-linecap: round;
+  opacity: var(--step-arrow-opacity);
+}
+
+.step-arrow-first {
+  opacity: var(--step-arrow-first-opacity);
 }

@@ -1,15 +1,17 @@
 use crate::piece::Piece;
 
 const N: usize = 8;
+const SIZE: usize = N * N;
 
+#[derive(Clone, Copy)]
 pub struct Board {
-    cells: Vec<Option<Piece>>,
+    cells: [Option<Piece>; SIZE],
 }
 
 impl Board {
     pub fn new() -> Self {
         Self {
-            cells: (0..N * N).map(|_| None).collect(),
+            cells: [None; SIZE],
         }
     }
 
@@ -41,7 +43,7 @@ impl Board {
         self.cells
             .iter()
             .enumerate()
-            .filter_map(|(i, p)| p.as_ref().map(|p| (i / 8, i % 8, p)))
+            .filter_map(|(i, p)| p.as_ref().map(|p| (i / N, i % N, p)))
     }
 
     pub fn count_pieces(&self) -> usize {

@@ -20,7 +20,7 @@ pub fn PieceSelectionBoard(selected: Signal<Option<usize>>) -> Element {
                     }
                     img {
                         class: "piece",
-                        src: piece.get_icon(),
+                        src: piece.get_white_icon(),
                         alt: piece.to_string(),
                         draggable: "false",
                     }
