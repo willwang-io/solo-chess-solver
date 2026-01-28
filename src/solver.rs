@@ -26,12 +26,39 @@ const KNIGHT_MOVE: &[(i32, i32)] = &[
     (-1, -2),
 ];
 
-pub fn solo_chess_solver(board: &mut Board) -> bool {
-    fn dfs(board: &mut Board) {
+pub fn solo_chess_solver(board: &mut Board) -> Vec<(usize, usize, usize, usize)> {
+    fn dfs(board: &mut Board, steps: &mut Vec<(usize, usize, usize, usize)>) -> bool {
+        if board.count_pieces() <= 1 {
+            return true;
+        }
 
+        let all_capture_pairs = list_capture_pairs(board);
+        for (fr, fc, tr, tc) in all_capture_pairs {
+            let from_piece = board.get_cell(fr, fc).unwrap();
+            let to_piece = board.get_cell(tr, tc).unwrap();
+
+            board.move_piece(fr, fc, tr, tc);
+            steps.push((fr, fc, tr, tc));
+
+            if dfs(board, steps) {
+                return true;
+            }
+
+            // Revere back.
+            steps.pop();
+            board.set_cell(fr, fc, from_piece);
+            board.set_cell(tr, tc, to_piece);
+        }
+
+        false
     }
-    // dfs(&mut board);
-    true
+
+    let mut steps = vec![];
+    if dfs(board, &mut steps) {
+        steps
+    } else {
+        vec![]
+    }
 }
 
 fn list_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
@@ -97,7 +124,56 @@ fn get_capturable_cells(
 }
 
 #[cfg(test)]
-mod test {
+mod test_solo_chess_solver {
+    use super::*;
+    use crate::piece::Piece;
+
+    macro_rules! board {
+        ( $( ($x:expr, $y:expr, $kind:ident) ),* $(,)? ) => {{
+            let mut b = Board::new();
+            $(
+                b.set_cell($x, $y, Piece::new(PieceType::$kind));
+            )*
+            b
+        }};
+    }
+
+    macro_rules! steps {
+        ( $( ($x1:expr, $y1:expr, $x2:expr, $y2:expr) ),* $(,)? ) => {
+            vec![$( ($x1, $y1, $x2, $y2) ),*]
+        };
+    }
+
+    #[test]
+    fn random_cases_with_a_solution() {
+        // There are ten levels from chess.com. So I randomly picked some, mostly from upper levels.
+
+        // Level 6
+        let mut board = board![
+            (0, 0, Queen),
+            (1, 2, Queen),
+            (3, 1, Knight),
+            (5, 1, Queen),
+            (5, 5, Rook),
+            (6, 4, Queen),
+            (6, 6, Queen),
+        ];
+        let actual = solo_chess_solver(&mut board);
+        println!("{actual:?}");
+        let expected = steps![
+            (3, 1, 1, 2),
+            (1, 2, 0, 0),
+            (5, 1, 5, 5),
+            (5, 5, 0, 0),
+            (6, 4, 6, 6),
+            (6, 6, 0, 0)
+        ];
+        assert_eq!(expected, actual);
+    }
+}
+
+#[cfg(test)]
+mod test_utilities {
     use super::*;
     use crate::piece::Piece;
 
