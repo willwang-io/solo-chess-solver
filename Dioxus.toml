@@ -4,8 +4,8 @@ out_dir = "dist"
 [web.app]
 
 # HTML title tag content
-title = "solo-chess-solver"
-base_path = "solo-chess-solver"
+title = "Solo-Chess Solver"
+base_path = "/"
 
 # include `assets` in web platform
 [web.resource]
