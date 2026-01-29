@@ -1,12 +1,22 @@
 use dioxus::prelude::*;
 
 use crate::step::Step;
+use crate::ui::step_colors::STEP_COLORS;
 
 #[component]
 pub fn Solution(steps: Vec<Step>) -> Element {
-    let sans = to_sans(&steps).join(" ");
+    let sans = to_sans(&steps);
     rsx! {
-        p { {sans} }
+        p {
+            strong { "Steps: " }
+            for (idx, step) in sans.iter().enumerate() {
+                span {
+                    key: "{idx}",
+                    style: "color: {STEP_COLORS[idx % STEP_COLORS.len()]};",
+                    "{step} "
+                }
+            }
+        }
     }
 }
 

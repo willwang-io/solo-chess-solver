@@ -49,6 +49,7 @@ fn App() -> Element {
     rsx! {
         document::Link { rel: "stylesheet", href: STYLE }
         div {
+            h2 { "Solo-Chess Solver" }
             div {
                 class: "board-stack",
                 Chessboard {
@@ -60,6 +61,15 @@ fn App() -> Element {
             }
             PieceSelectionBoard { selected: selected_piece }
             Solution { steps }
+            div {
+                h2 { "Rules" }
+                p { "From chess.com: "}
+                ul {
+                    li { "Capture a piece with every move until just one remains" }
+                    li { "No piece may capture more than 2 times per puzzle (shown in black if cannot move)" }
+                    li { "If there is a King on the board, it must be the final piece" }
+                }
+            }
         }
     }
 }
