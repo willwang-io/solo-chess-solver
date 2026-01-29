@@ -102,6 +102,7 @@ fn get_capturable_cells(
     let mut can_capture_cell = vec![];
     let is_king = piece_type == PieceType::King;
     let is_pawn = piece_type == PieceType::Pawn;
+    let is_knight = piece_type == PieceType::Knight;
 
     for (dr, dc) in move_rules {
         let mut cr = r as i32;
@@ -122,8 +123,8 @@ fn get_capturable_cells(
                 });
                 break;
             }
-            // King and Pawn can only move one space.
-            if is_king || is_pawn {
+            // King, Pawn and Knight can only move one time.
+            if is_king || is_pawn || is_knight {
                 break;
             }
         }
@@ -164,25 +165,27 @@ mod test_solo_chess_solver {
     fn random_cases_with_a_solution() {
         // There are ten levels from chess.com. So I randomly picked some, mostly from upper levels.
 
-        // Level 6
+        // Level 7
         let mut board = board![
-            (0, 0, Queen),
-            (1, 2, Queen),
-            (3, 1, Knight),
-            (5, 1, Queen),
+            (3, 0, Bishop),
+            (1, 1, Knight),
+            (2, 3, Queen),
+            (3, 2, Knight),
             (5, 5, Rook),
-            (6, 4, Queen),
-            (6, 6, Queen),
+            (3, 5, Knight),
+            (4, 2, Knight),
+            (5, 5, Bishop),
+            (6, 1, Rook),
         ];
         let actual = solo_chess_solver(&mut board);
-        println!("{actual:?}");
         let expected = steps![
-            (3, 1, 1, 2, Knight),
-            (1, 2, 0, 0, Knight),
-            (5, 1, 5, 5, Queen),
-            (5, 5, 0, 0, Queen),
-            (6, 4, 6, 6, Queen),
-            (6, 6, 0, 0, Queen),
+            (3, 2, 1, 1, Knight),
+            (3, 5, 2, 3, Knight),
+            (2, 3, 1, 1, Knight),
+            (4, 2, 3, 0, Knight),
+            (3, 0, 1, 1, Knight),
+            (5, 5, 1, 1, Bishop),
+            (6, 1, 1, 1, Rook),
         ];
         assert_eq!(expected, actual);
     }
