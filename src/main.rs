@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 mod board;
 mod piece;
 mod solver;
+mod step;
 mod ui;
 
 use board::Board;

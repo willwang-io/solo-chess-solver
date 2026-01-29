@@ -1,4 +1,4 @@
-use crate::{board::Board, piece::PieceType};
+use crate::{board::Board, piece::PieceType, step::Step};
 
 // 0..2 are Pawn attack directions (Remainder: every move must be a capture under solo-chess rule);
 // 0..4 are Bishop move directions;
@@ -26,19 +26,21 @@ const KNIGHT_MOVE: &[(i32, i32)] = &[
     (-1, -2),
 ];
 
-pub fn solo_chess_solver(board: &mut Board) -> Vec<(usize, usize, usize, usize)> {
-    fn dfs(board: &mut Board, steps: &mut Vec<(usize, usize, usize, usize)>) -> bool {
+pub fn solo_chess_solver(board: &mut Board) -> Vec<Step> {
+    fn dfs(board: &mut Board, steps: &mut Vec<Step>) -> bool {
         if board.count_pieces() <= 1 {
             return true;
         }
 
-        let all_capture_pairs = list_capture_pairs(board);
-        for (fr, fc, tr, tc) in all_capture_pairs {
+        let all_capture_steps = list_capture_pairs(board);
+        for step in all_capture_steps {
+            let (fr, fc) = step.from;
+            let (tr, tc) = step.to;
             let from_piece = board.get_cell(fr, fc).unwrap();
             let to_piece = board.get_cell(tr, tc).unwrap();
 
             board.move_piece(fr, fc, tr, tc);
-            steps.push((fr, fc, tr, tc));
+            steps.push(step);
 
             if dfs(board, steps) {
                 return true;
@@ -61,7 +63,7 @@ pub fn solo_chess_solver(board: &mut Board) -> Vec<(usize, usize, usize, usize)>
     }
 }
 
-fn list_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
+fn list_capture_pairs(board: &Board) -> Vec<Step> {
     let all_pieces = board.pieces();
     let mut capture_pairs = vec![];
 
@@ -69,14 +71,15 @@ fn list_capture_pairs(board: &Board) -> Vec<(usize, usize, usize, usize)> {
         if p.move_left() == 0 {
             continue;
         }
-        let move_rules = match p.piece_type {
+        let piece_type = p.piece_type;
+        let move_rules = match piece_type {
             PieceType::King | PieceType::Queen => &SLIDER_MOVE,
             PieceType::Bishop => &SLIDER_MOVE[..4],
             PieceType::Rook => &SLIDER_MOVE[4..],
             PieceType::Knight => &KNIGHT_MOVE,
             PieceType::Pawn => &SLIDER_MOVE[..2],
         };
-        let tmp = get_capturable_cells(&board, r, c, move_rules);
+        let tmp = get_capturable_cells(&board, r, c, piece_type, move_rules);
         capture_pairs.extend_from_slice(&tmp);
     }
 
@@ -93,11 +96,12 @@ fn get_capturable_cells(
     board: &Board,
     r: usize,
     c: usize,
+    piece_type: PieceType,
     move_rules: &[(i32, i32)],
-) -> Vec<(usize, usize, usize, usize)> {
+) -> Vec<Step> {
     let mut can_capture_cell = vec![];
-    let is_king = board.get_cell(r, c).map(|p| p.piece_type) == Some(PieceType::King);
-    let is_pawn = board.get_cell(r, c).map(|p| p.piece_type) == Some(PieceType::Pawn);
+    let is_king = piece_type == PieceType::King;
+    let is_pawn = piece_type == PieceType::Pawn;
 
     for (dr, dc) in move_rules {
         let mut cr = r as i32;
@@ -111,7 +115,11 @@ fn get_capturable_cells(
             let ur = cr as usize;
             let uc = cc as usize;
             if is_non_king_occupied(board, ur, uc) {
-                can_capture_cell.push((r, c, ur, uc));
+                can_capture_cell.push(Step {
+                    from: (r, c),
+                    to: (ur, uc),
+                    piece_type,
+                });
                 break;
             }
             // King and Pawn can only move one space.
@@ -139,8 +147,16 @@ mod test_solo_chess_solver {
     }
 
     macro_rules! steps {
-        ( $( ($x1:expr, $y1:expr, $x2:expr, $y2:expr) ),* $(,)? ) => {
-            vec![$( ($x1, $y1, $x2, $y2) ),*]
+        ( $( ($x1:expr, $y1:expr, $x2:expr, $y2:expr, $kind:ident) ),* $(,)? ) => {
+            vec![
+                $(
+                    Step {
+                        from: ($x1, $y1),
+                        to: ($x2, $y2),
+                        piece_type: PieceType::$kind,
+                    }
+                ),*
+            ]
         };
     }
 
@@ -161,12 +177,12 @@ mod test_solo_chess_solver {
         let actual = solo_chess_solver(&mut board);
         println!("{actual:?}");
         let expected = steps![
-            (3, 1, 1, 2),
-            (1, 2, 0, 0),
-            (5, 1, 5, 5),
-            (5, 5, 0, 0),
-            (6, 4, 6, 6),
-            (6, 6, 0, 0)
+            (3, 1, 1, 2, Knight),
+            (1, 2, 0, 0, Knight),
+            (5, 1, 5, 5, Queen),
+            (5, 5, 0, 0, Queen),
+            (6, 4, 6, 6, Queen),
+            (6, 6, 0, 0, Queen),
         ];
         assert_eq!(expected, actual);
     }
@@ -176,6 +192,14 @@ mod test_solo_chess_solver {
 mod test_utilities {
     use super::*;
     use crate::piece::Piece;
+
+    fn step(fr: usize, fc: usize, tr: usize, tc: usize, piece_type: PieceType) -> Step {
+        Step {
+            from: (fr, fc),
+            to: (tr, tc),
+            piece_type,
+        }
+    }
 
     #[test]
     fn unable_to_capture_piece_if_no_move_left() {
@@ -212,19 +236,19 @@ mod test_utilities {
         let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(
             &vec![
-                (4, 4, 5, 6),
-                (4, 4, 5, 2),
-                (4, 4, 3, 6),
-                (4, 4, 3, 2),
-                (4, 4, 2, 5),
-                (4, 4, 6, 5),
-                (4, 4, 2, 3),
+                step(4, 4, 5, 6, PieceType::Knight),
+                step(4, 4, 5, 2, PieceType::Knight),
+                step(4, 4, 3, 6, PieceType::Knight),
+                step(4, 4, 3, 2, PieceType::Knight),
+                step(4, 4, 2, 5, PieceType::Knight),
+                step(4, 4, 6, 5, PieceType::Knight),
+                step(4, 4, 2, 3, PieceType::Knight),
                 // These are from the Pawns
-                (6, 5, 5, 6),
-                (3, 2, 2, 3),
-                (3, 6, 2, 5),
+                step(6, 5, 5, 6, PieceType::Pawn),
+                step(3, 2, 2, 3, PieceType::Pawn),
+                step(3, 6, 2, 5, PieceType::Pawn),
                 // This is from the King
-                (6, 3, 5, 2),
+                step(6, 3, 5, 2, PieceType::King),
             ],
             &capture_pairs,
         );
@@ -243,7 +267,7 @@ mod test_utilities {
         board.set_cell(5, 0, Piece::new(PieceType::Pawn));
         board.set_cell(5, 1, Piece::new(PieceType::Pawn));
         let capture_pairs = list_capture_pairs(&board);
-        assert_eq!(vec![(5, 3, 5, 1)], capture_pairs);
+        assert_eq!(vec![step(5, 3, 5, 1, PieceType::Queen)], capture_pairs);
 
         /*
         Add more pawns that are attackable in all queen directions.
@@ -271,13 +295,13 @@ mod test_utilities {
         let capture_pairs = list_capture_pairs(&board);
         assert_vec_eq_unordered(
             &vec![
-                (5, 3, 0, 3),
-                (5, 3, 1, 7),
-                (5, 3, 2, 0),
-                (5, 3, 5, 7),
-                (5, 3, 6, 3),
-                (5, 3, 7, 1),
-                (5, 3, 5, 1),
+                step(5, 3, 0, 3, PieceType::Queen),
+                step(5, 3, 1, 7, PieceType::Queen),
+                step(5, 3, 2, 0, PieceType::Queen),
+                step(5, 3, 5, 7, PieceType::Queen),
+                step(5, 3, 6, 3, PieceType::Queen),
+                step(5, 3, 7, 1, PieceType::Queen),
+                step(5, 3, 5, 1, PieceType::Queen),
             ],
             &capture_pairs,
         );
@@ -285,7 +309,7 @@ mod test_utilities {
         // Replace the queen with a king. Only adjacent pieces should be capturable.
         board.set_cell(5, 3, Piece::new(PieceType::King));
         let capture_pairs = list_capture_pairs(&board);
-        assert_vec_eq_unordered(&vec![(5, 3, 6, 3)], &capture_pairs);
+        assert_vec_eq_unordered(&vec![step(5, 3, 6, 3, PieceType::King)], &capture_pairs);
     }
 
     #[test]
@@ -300,12 +324,18 @@ mod test_utilities {
         // Piece on the left diagonal
         board.set_cell(3, 3, Piece::new(PieceType::Pawn));
         let capture_pairs = list_capture_pairs(&board);
-        assert_eq!(vec![(4, 4, 3, 3)], capture_pairs);
+        assert_eq!(vec![step(4, 4, 3, 3, PieceType::Pawn)], capture_pairs);
 
         // Another piece on the right diagonal
         board.set_cell(3, 5, Piece::new(PieceType::Pawn));
         let capture_pairs = list_capture_pairs(&board);
-        assert_vec_eq_unordered(&vec![(4, 4, 3, 3), (4, 4, 3, 5)], &capture_pairs);
+        assert_vec_eq_unordered(
+            &vec![
+                step(4, 4, 3, 3, PieceType::Pawn),
+                step(4, 4, 3, 5, PieceType::Pawn),
+            ],
+            &capture_pairs,
+        );
     }
 
     #[test]

@@ -1,7 +1,9 @@
 use dioxus::prelude::*;
 
+use crate::step::Step;
+
 #[component]
-pub fn StepArrows(steps: Vec<(usize, usize, usize, usize)>) -> Element {
+pub fn StepArrows(steps: Vec<Step>) -> Element {
     rsx! {
         svg {
             class: "chessboard-overlay",
@@ -23,7 +25,9 @@ pub fn StepArrows(steps: Vec<(usize, usize, usize, usize)>) -> Element {
                     }
                 }
             }
-            for (idx, (fr, fc, tr, tc)) in steps.iter().copied().enumerate() {
+            for (idx, Step { from: (fr, fc), to: (tr, tc), .. }) in
+                steps.iter().copied().enumerate()
+            {
                 if fr != tr || fc != tc {
                     line {
                         key: "{idx}",
