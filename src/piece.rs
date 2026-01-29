@@ -47,12 +47,12 @@ impl Piece {
 impl fmt::Display for PieceType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let display_name = match self {
-            PieceType::King => "King",
-            PieceType::Queen => "Queen",
-            PieceType::Bishop => "Bishop",
-            PieceType::Rook => "Rook",
-            PieceType::Knight => "Knight",
-            PieceType::Pawn => "Pawn",
+            PieceType::King => "K",
+            PieceType::Queen => "Q",
+            PieceType::Bishop => "B",
+            PieceType::Rook => "R",
+            PieceType::Knight => "N",
+            PieceType::Pawn => "",
         };
         write!(f, "{}", display_name)
     }
