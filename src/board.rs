@@ -3,7 +3,7 @@ use crate::piece::Piece;
 const N: usize = 8;
 const SIZE: usize = N * N;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Board {
     cells: [Option<Piece>; SIZE],
 }
@@ -50,8 +50,18 @@ impl Board {
         self.pieces().count()
     }
 
-    pub fn is_empty(&self, r: usize, c: usize) -> bool {
-        self.get_cell(r, c).is_none()
+    pub fn sum_move_left(&self) -> usize {
+        self.pieces().map(|(_, _, p)| p.move_left()).sum()
+    }
+
+    pub fn has_king(&self) -> bool {
+        self.pieces().any(|(_, _, p)| p.is_king())
+    }
+
+    pub fn single_is_king(&self) -> bool {
+        let mut it = self.pieces();
+        let Some((_, _, p)) = it.next() else { return false; };
+        it.next().is_none() && p.is_king()
     }
 }
 
@@ -77,7 +87,9 @@ mod test {
         board.move_piece(0, 4, 2, 6);
 
         assert!(board.get_cell(0, 4).is_none());
-        assert_eq!(Some(Piece::new(PieceType::Bishop)), board.get_cell(2, 6));
+        assert!(board.get_cell(2, 6).is_some());
+        assert_eq!(1, board.get_cell(2, 6).unwrap().move_left());
+        assert_eq!(PieceType::Bishop, board.get_cell(2, 6).unwrap().piece_type);
     }
 
     #[test]

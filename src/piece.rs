@@ -11,7 +11,7 @@ pub enum PieceType {
     Pawn,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct Piece {
     move_left: usize,
     pub piece_type: PieceType,
