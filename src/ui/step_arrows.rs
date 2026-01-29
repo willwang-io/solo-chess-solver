@@ -4,7 +4,8 @@ use crate::step::Step;
 use crate::ui::step_colors::STEP_COLORS;
 
 #[component]
-pub fn StepArrows(steps: Vec<Step>) -> Element {
+pub fn StepArrows(steps: Vec<Step>, selected_step: Signal<Option<usize>>) -> Element {
+    let selected = selected_step();
     rsx! {
         svg {
             class: "chessboard-overlay",
@@ -34,7 +35,7 @@ pub fn StepArrows(steps: Vec<Step>) -> Element {
                 if fr != tr || fc != tc {
                     line {
                         key: "{idx}",
-                        class: "step-arrow",
+                        class: "{arrow_class(selected, idx)}",
                         style: "stroke: {step_color(idx)};",
                         x1: "{(fc as f32) + 0.5}",
                         y1: "{(fr as f32) + 0.5}",
@@ -54,4 +55,12 @@ fn color_index(idx: usize) -> usize {
 
 fn step_color(idx: usize) -> &'static str {
     STEP_COLORS[color_index(idx)]
+}
+
+fn arrow_class(selected: Option<usize>, idx: usize) -> &'static str {
+    match selected {
+        Some(selected_idx) if selected_idx == idx => "step-arrow active",
+        Some(_) => "step-arrow dim",
+        None => "step-arrow",
+    }
 }

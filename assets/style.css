@@ -71,8 +71,13 @@
   opacity: var(--step-arrow-opacity);
 }
 
-.step-arrow-first {
-  opacity: var(--step-arrow-first-opacity);
+.step-arrow.dim {
+  opacity: 0.15;
+}
+
+.step-arrow.active {
+  opacity: 0.95;
+  stroke-width: 0.16;
 }
 
 .square-label {
@@ -100,6 +105,19 @@
 .file-label {
   right: 4px;
   bottom: 4px;
+}
+
+.step-token {
+  font-weight: 600;
+  transition: opacity 120ms ease-in-out;
+}
+
+.step-token.dim {
+  opacity: 0.4;
+}
+
+.step-token.active {
+  text-decoration: underline;
 }
 
 .piece-selection {

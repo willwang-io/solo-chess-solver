@@ -45,6 +45,7 @@ fn App() -> Element {
 
     let mut solver_board = board_state();
     let steps = solo_chess_solver(&mut solver_board);
+    let selected_step = use_signal(|| Option::<usize>::None);
 
     rsx! {
         document::Link { rel: "stylesheet", href: STYLE }
@@ -57,10 +58,13 @@ fn App() -> Element {
                     on_square_click,
                     on_square_right_click,
                 }
-                StepArrows { steps: steps.clone() }
+                StepArrows {
+                    steps: steps.clone(),
+                    selected_step,
+                }
             }
             PieceSelectionBoard { selected: selected_piece }
-            Solution { steps }
+            Solution { steps, selected_step }
             div {
                 h2 { "Rules" }
                 p { "From chess.com: "}
