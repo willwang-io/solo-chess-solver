@@ -42,7 +42,11 @@ pub fn solo_chess_solver(board: &mut Board) -> Vec<Step> {
         let p = board.count_pieces();
 
         if p <= 1 {
-            return if king_required { board.single_is_king() } else { p == 1 };
+            return if king_required {
+                board.single_is_king()
+            } else {
+                p == 1
+            };
         }
 
         if board.sum_move_left() < p - 1 {
@@ -127,7 +131,7 @@ fn get_capturable_cells_into(
     c: usize,
     piece_type: PieceType,
     move_rules: &[(i32, i32)],
-    out: &mut Vec<Step>
+    out: &mut Vec<Step>,
 ) {
     let is_king = piece_type == PieceType::King;
     let is_pawn = piece_type == PieceType::Pawn;
@@ -310,7 +314,7 @@ mod test_utilities {
         list_capture_pairs_into(&board, &mut capture_pairs);
         assert!(capture_pairs.is_empty());
 
-        // The check on that direction should stop if met a King. 
+        // The check on that direction should stop if met a King.
         board.set_cell(5, 0, Piece::new(PieceType::Pawn));
         board.set_cell(5, 2, Piece::new(PieceType::King));
         list_capture_pairs_into(&board, &mut capture_pairs);

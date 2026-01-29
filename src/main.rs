@@ -62,6 +62,25 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: STYLE }
         main {
             h1 { "Solo-Chess Solver" }
+            section {
+                div {
+                    class: "preset-buttons",
+                    for setup in EXAMPLE_SETUPS {
+                        button {
+                            key: "{setup.name}",
+                            class: "preset-button",
+                            r#type: "button",
+                            onclick: {
+                                let board_state = board_state;
+                                let selected_step = selected_step;
+                                let pieces = setup.pieces;
+                                move |_| apply_preset(board_state, selected_step, pieces)
+                            },
+                            "{setup.name}"
+                        }
+                    }
+                }
+            }
             div {
                 class: "board-stack",
                 Chessboard {
@@ -87,4 +106,59 @@ fn App() -> Element {
             }
         }
     }
+}
+
+struct ExampleSetup {
+    name: &'static str,
+    pieces: &'static [(usize, usize, PieceType)],
+}
+
+const EXAMPLE_SETUPS: &[ExampleSetup] = &[
+    ExampleSetup {
+        name: "Clear",
+        pieces: &[],
+    },
+    ExampleSetup {
+        name: "Easy Example",
+        pieces: &[
+            (0, 5, PieceType::Rook),
+            (2, 4, PieceType::Bishop),
+            (3, 2, PieceType::Rook),
+            (3, 5, PieceType::Queen),
+        ],
+    },
+    ExampleSetup {
+        name: "Hard Example",
+        pieces: &[
+            (0, 1, PieceType::Rook),
+            (0, 3, PieceType::Knight),
+            (1, 0, PieceType::King),
+            (1, 1, PieceType::Rook),
+            (2, 2, PieceType::Knight),
+            (2, 3, PieceType::Knight),
+            (3, 0, PieceType::Bishop),
+            (4, 0, PieceType::Knight),
+            (1, 6, PieceType::Queen),
+            (7, 1, PieceType::Rook),
+            (3, 2, PieceType::Knight),
+        ],
+    },
+];
+
+fn apply_preset(
+    mut board_state: Signal<Board>,
+    mut selected_step: Signal<Option<usize>>,
+    pieces: &[(usize, usize, PieceType)],
+) {
+    board_state.with_mut(|b| {
+        for r in 0..8 {
+            for c in 0..8 {
+                b.clear_cell(r, c);
+            }
+        }
+        for &(r, c, piece_type) in pieces {
+            b.set_cell(r, c, Piece::new(piece_type));
+        }
+    });
+    selected_step.set(None);
 }

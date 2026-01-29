@@ -60,7 +60,9 @@ impl Board {
 
     pub fn single_is_king(&self) -> bool {
         let mut it = self.pieces();
-        let Some((_, _, p)) = it.next() else { return false; };
+        let Some((_, _, p)) = it.next() else {
+            return false;
+        };
         it.next().is_none() && p.is_king()
     }
 }

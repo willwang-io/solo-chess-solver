@@ -148,3 +148,10 @@
 .piece-toggle.selected {
   border: 1px solid rgba(34, 34, 34, 0.6);
 }
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
