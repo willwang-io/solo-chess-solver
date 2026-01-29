@@ -86,12 +86,6 @@ fn list_capture_pairs(board: &Board) -> Vec<Step> {
     capture_pairs
 }
 
-// Note: Base on the game rule, if King present, it must be the last piece,
-// hence, no other piece can capture it at all time.
-fn is_non_king_occupied(board: &Board, r: usize, c: usize) -> bool {
-    !board.is_empty(r, c) && board.get_cell(r, c).map(|p| p.piece_type) != Some(PieceType::King)
-}
-
 fn get_capturable_cells(
     board: &Board,
     r: usize,
@@ -115,7 +109,11 @@ fn get_capturable_cells(
             }
             let ur = cr as usize;
             let uc = cc as usize;
-            if is_non_king_occupied(board, ur, uc) {
+
+            if let Some(cell) = board.get_cell(ur, uc) {
+                if cell.is_king() {
+                    break;
+                }
                 can_capture_cell.push(Step {
                     from: (r, c),
                     to: (ur, uc),
@@ -123,6 +121,7 @@ fn get_capturable_cells(
                 });
                 break;
             }
+
             // King, Pawn and Knight can only move one time.
             if is_king || is_pawn || is_knight {
                 break;
@@ -266,7 +265,13 @@ mod test_utilities {
         let capture_pairs = list_capture_pairs(&board);
         assert!(capture_pairs.is_empty());
 
+        // The check on that direction should stop if met a King. 
+        board.set_cell(5, 0, Piece::new(PieceType::Pawn));
+        board.set_cell(5, 2, Piece::new(PieceType::King));
+        assert!(capture_pairs.is_empty());
+
         // Two pawns are aligned on one of the queen’s lines of attack. It should capture only the closest one.
+        board.clear_cell(5, 2);
         board.set_cell(5, 0, Piece::new(PieceType::Pawn));
         board.set_cell(5, 1, Piece::new(PieceType::Pawn));
         let capture_pairs = list_capture_pairs(&board);
@@ -339,14 +344,6 @@ mod test_utilities {
             ],
             &capture_pairs,
         );
-    }
-
-    #[test]
-    fn test_is_non_king_occupied() {
-        let mut board = Board::new();
-        board.set_cell(4, 4, Piece::new(PieceType::King));
-
-        assert!(!is_non_king_occupied(&board, 4, 4));
     }
 
     fn assert_vec_eq_unordered<T>(a: &[T], b: &[T])

@@ -42,6 +42,10 @@ impl Piece {
     pub fn move_left(&self) -> usize {
         self.move_left
     }
+
+    pub fn is_king(&self) -> bool {
+        self.piece_type == PieceType::King
+    }
 }
 
 impl fmt::Display for PieceType {
