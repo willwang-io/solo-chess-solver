@@ -34,6 +34,8 @@ fn Square(
     on_square_right_click: EventHandler<(usize, usize)>,
 ) -> Element {
     let cell = board.read().get_cell(r, c);
+    let rank_label = 8 - r;
+    let file_label = (b'a' + c as u8) as char;
 
     rsx! {
         div {
@@ -67,6 +69,14 @@ fn Square(
                     b.move_piece(fr, fc, r, c);
                 }
             },
+
+            if c == 0 {
+                span { class: "square-label rank-label", "{rank_label}" }
+            }
+
+            if r == 7 {
+                span { class: "square-label file-label", "{file_label}" }
+            }
 
             if let Some(piece) = cell {
                 img {

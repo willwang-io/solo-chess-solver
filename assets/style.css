@@ -43,6 +43,7 @@
   align-items: center;
   justify-content: center;
   user-select: none;
+  position: relative;
 }
 
 .square.light {
@@ -72,4 +73,60 @@
 
 .step-arrow-first {
   opacity: var(--step-arrow-first-opacity);
+}
+
+.square-label {
+  position: absolute;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.square.light .square-label {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.square.dark .square-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.rank-label {
+  top: 4px;
+  left: 4px;
+}
+
+.file-label {
+  right: 4px;
+  bottom: 4px;
+}
+
+.piece-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.piece-toggle-group {
+  display: flex;
+  gap: 6px;
+  width: fit-content;
+}
+
+.piece-toggle {
+  width: var(--square-size);
+  height: var(--square-size);
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.piece-toggle.selected {
+  border: 1px solid rgba(34, 34, 34, 0.6);
 }
